@@ -1,5 +1,5 @@
 
-# csc148_docstring_generator
+# CSC148 Docstring Generator
 A docstring template generator
 
 # How to use:
