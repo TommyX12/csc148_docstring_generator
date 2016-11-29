@@ -1,20 +1,24 @@
 """
+# CSC148 Docstring Generator
+A docstring template generator that adds docstring template to classes 
+    and functions in your files without changing existing ones.
 
-A docstring template generator.
-
-How to use:
+# How to use:
 - Write all your code first before running this.
 - Place this file inside the folder you want to process.
-- Run this file (for example, right click in PyCharm and select 'Run')
-- Go to your files, press "ctrl + F"(Windows) or "command + F"(Mac) to
+- Run this file (for example, right click in PyCharm and select 'Run').
+    Your files are now processed and backup is made.
+- Open your files, press "ctrl + F"(Windows) or "command + F"(Mac) to
     bring up the search bar. Write "[TODO]"(without the quotation marks)
     and press "Enter" once. Press "Esc", then hit "F3" to search for the next
     "[TODO]", write appropriate text then hit "F3" again and repeat until all
     "[TODO]"s are gone.
-- You may also add descriptions to each property / attribute by yourself.
+- Add attributes to class docstrings (if some were missing) and remove
+    unnecessary ones (such as inherited attributes in super constructor).
+    You may also add descriptions to each property / attribute by yourself.
 
-What will happen:
-- All files under the same folder as well as files in the sub-folders
+# What will happen:
+- All python files under the same folder as well as files in the sub-folders
     will be processed.
 - In each file, a docstring will be added for every function and class, as
     well as one for the entire document.
@@ -29,11 +33,20 @@ What will happen:
     same folder. Check the new versions before running the generator again,
     or else the old backup will be overwritten.
 
-
-Road-map:
+# Change log:
+- Provide an example of before and after. Covering document docstring,
+    function, class (private + public), and unchanged existing docstrings.
+- Minor style changes
 - Default return type to None if no "return" statement is present in a function.
+    An exception is when the function raises NotImplementedError, or pass.
+- Adds description placeholder for every parameter and attribute except self.
+- Initial release
+
+# Road-map:
+- Able to insert missing elements into existing docstrings.
 
 
+# License:
 Copyright (c) 2016 TommyX
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -124,9 +137,11 @@ def process_file(txt):
 
         indentation = get_indentation(line)
 
-        function_match_obj = re.match(r'\s*def\s', line)
-        if function_match_obj is not None:
+        if re.match(r'\s*def\s', line) is not None:
             docstring_indentation = None
+
+            has_return = False
+
             for j in range(i + 1, len(lines)):
                 sub_line = lines[j]
 
@@ -137,20 +152,31 @@ def process_file(txt):
                 if len(sub_indentation) <= len(indentation):
                     break
 
-                if sub_line.lstrip().startswith('\"\"\"'):
-                    break
+                if docstring_indentation is None:
+                    if sub_line.lstrip().startswith('\"\"\"'):
+                        break
 
-                docstring_indentation = sub_indentation
+                    docstring_indentation = sub_indentation
+
+                sub_line = sub_line.lstrip() + ' '
+
+                if re.match(r'return\W', sub_line) \
+                        is not None or \
+                        re.match(r'raise\s+NotImplementedError', sub_line) \
+                        is not None or \
+                        re.match(r'pass\s', sub_line) \
+                        is not None:
+                    has_return = True
+                    break
 
             if docstring_indentation is not None:
                 print('- added function docstring: ' + line.lstrip())
-                results += get_function_docstring(line,
+                results += get_function_docstring(line, has_return,
                                                   docstring_indentation)
 
             continue
 
-        class_match_obj = re.match(r'\s*class\s', line)
-        if class_match_obj is not None:
+        if re.match(r'\s*class\s', line) is not None:
 
             attributes = {}
             p_attributes = {}
@@ -173,8 +199,7 @@ def process_file(txt):
 
                     docstring_indentation = ctor_indentation
 
-                ctor_match_obj = re.match(r'\s*def\s+__init__', ctor_line)
-                if ctor_match_obj is not None:
+                if re.match(r'\s*def\s+__init__', ctor_line) is not None:
                     for k in range(j + 1, len(lines)):
                         sub_line = lines[k]
 
@@ -187,8 +212,7 @@ def process_file(txt):
 
                         sub_line = sub_line.lstrip()
 
-                        attr_match_obj = re.match(r'self\.[a-zA-Z0-9_]+',
-                                                  sub_line)
+                        attr_match_obj = re.match(r'self\.\w+', sub_line)
                         if attr_match_obj is not None:
                             attr_match_span = attr_match_obj.span()
                             attr_name = sub_line[5:attr_match_span[1]]
@@ -227,24 +251,25 @@ def get_class_docstring(attributes, p_attributes, indentation):
     """
     docstring = []
 
-    docstring.append('\"\"\"')
-    docstring.append(todo_label)
+    docstring.append('\"\"\"' + todo_label)
 
     if attributes:
         docstring.append('')
         docstring.append('=== Attributes ===')
         for attr in attributes:
             docstring.append('@type ' + attr + ': ' + todo_label)
+            docstring.append('    ' + todo_label)
 
     if p_attributes:
         docstring.append('')
         docstring.append('=== Private Attributes ===')
         for attr in p_attributes:
             docstring.append('@type ' + attr + ': ' + todo_label)
+            docstring.append('    ' + todo_label)
 
     docstring.append('')
     docstring.append('=== Representation Invariants ===')
-    docstring.append(todo_label)
+    docstring.append('- ' + todo_label)
     docstring.append('\"\"\"')
 
     for i in range(len(docstring)):
@@ -253,7 +278,7 @@ def get_class_docstring(attributes, p_attributes, indentation):
     return docstring
 
 
-def get_function_docstring(declaration, indentation):
+def get_function_docstring(declaration, has_return, indentation):
     """
     Return the docstring template of a function, in a list of separated lines.
 
@@ -261,6 +286,8 @@ def get_function_docstring(declaration, indentation):
 
     @type declaration: str
         The line containing "def" for the function. Used to extract parameters.
+    @type has_return: bool
+        If false, the rtype of that function docstring will be default to None.
     @type indentation: str
         The leading whitespace to add to each line, so that the docstring
         is aligned properly.
@@ -281,15 +308,20 @@ def get_function_docstring(declaration, indentation):
 
     docstring = []
 
-    docstring.append('\"\"\"')
-    docstring.append(todo_label)
+    docstring.append('\"\"\"' + todo_label)
     docstring.append('')
     docstring.append('Preconditions: ' + todo_label)
     docstring.append('')
     for param in params:
         if len(param) > 0:
             docstring.append('@type ' + param + ': ' + todo_label)
-    docstring.append('@rtype: ' + todo_label)
+            if param != 'self':
+                docstring.append('    ' + todo_label)
+    if has_return:
+        docstring.append('@rtype: ' + todo_label)
+    else:
+        docstring.append('@rtype: None')
+
     docstring.append('\"\"\"')
 
     for i in range(len(docstring)):
