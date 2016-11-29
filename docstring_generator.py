@@ -133,8 +133,6 @@ def process_file(txt):
 
     document_docstring_exists = False
 
-    augmentation_queue = []
-
     for i in range(len(lines)):
         if i >= len(lines):
             break
