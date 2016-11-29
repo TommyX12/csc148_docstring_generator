@@ -1,5 +1,5 @@
 # CSC148 Docstring Generator
-A docstring template generator that adds docstring template to classes 
+A docstring template generator that adds docstring template to classes
     and functions in your files without changing existing ones.
 
 # How to use:
@@ -21,17 +21,18 @@ A docstring template generator that adds docstring template to classes
     will be processed.
 - In each file, a docstring will be added for every function and class, as
     well as one for the entire document.
-    - function: A type contract will be added for every parameter.
+    - function: A type contract will be added for every parameter. Doctest
+        will be added.
     - class: The generator will scan the constructor (if exists) for any
         self.xxxx or self._xxxx properties.
         Warning: This feature will NOT consider inheritance.
 - Newly added docstring will have "[TODO]" as placeholder for the user to
     enter data, such as representation invariants.
-- If a docstring already exists, nothing will be added.
+- If a docstring already exists, descriptions and doctests will be inserted.
 - The original version will be renamed to "[old file name].bak" under the
     same folder. Check the new versions before running the generator again,
     or else the old backup will be overwritten.
-    
+
 # Example:
 Before:
 ```python
@@ -48,9 +49,15 @@ class my_class:
     def my_method(self, param1, param2):
         print(param1, param2)
 
-    def my_method2(self):
+    def my_method2(self, param1, param2):
         """
-        existing docstring will not be modified.
+        for existing docstrings, parameter descriptions and doctests will be
+        inserted.
+
+        @type self: my_class
+        @type param1: int
+        @type param2: int
+            existing descriptions will not be modified.
         """
         return 0
 ```
@@ -70,6 +77,9 @@ def my_function(param1, param2):
     @type param2: [TODO]
         [TODO]
     @rtype: [TODO]
+    
+    >>> [TODO]
+    
     """
     return param1 + param2
 
@@ -77,9 +87,9 @@ class my_class:
     """[TODO]
     
     === Attributes ===
-    @type attr1: [TODO]
-        [TODO]
     @type attr2: [TODO]
+        [TODO]
+    @type attr1: [TODO]
         [TODO]
     
     === Private Attributes ===
@@ -100,6 +110,9 @@ class my_class:
         @type param1: [TODO]
             [TODO]
         @rtype: None
+        
+        >>> [TODO]
+        
         """
         self.attr1 = param1
         self.attr2 = 0
@@ -117,17 +130,32 @@ class my_class:
         @type param2: [TODO]
             [TODO]
         @rtype: None
+        
+        >>> [TODO]
+        
         """
         print(param1, param2)
 
-    def my_method2(self):
+    def my_method2(self, param1, param2):
         """
-        existing docstring will not be modified.
+        for existing docstrings, parameter descriptions and doctests will be
+        inserted.
+
+        @type self: my_class
+        @type param1: int
+            [TODO]
+        @type param2: int
+            existing descriptions will not be modified.
+        
+        >>> [TODO]
+        
         """
         return 0
 ```
 
 # Change log:
+- Able to insert descriptions and doctests into existing docstrings
+- Doctests are now considered
 - Provide an example of before and after. Covering document docstring,
     function, class (private + public), and unchanged existing docstrings.
 - Minor style changes
@@ -137,7 +165,8 @@ class my_class:
 - Initial release
 
 # Road-map:
-- Able to insert missing elements into existing docstrings.
+- Able to insert more missing elements into existing docstrings.
+- Automatically detect the type of some variables
 
 
 # License:
