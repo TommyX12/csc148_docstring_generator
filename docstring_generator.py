@@ -1,6 +1,6 @@
 """
 # CSC148 Docstring Generator
-A docstring template generator that adds docstring template to classes 
+A docstring template generator that adds docstring template to classes
     and functions in your files without changing existing ones.
 
 # How to use:
@@ -34,6 +34,8 @@ A docstring template generator that adds docstring template to classes
     or else the old backup will be overwritten.
 
 # Change log:
+- Able to insert descriptions and doctests into existing docstrings
+- Doctests are now considered
 - Provide an example of before and after. Covering document docstring,
     function, class (private + public), and unchanged existing docstrings.
 - Minor style changes
@@ -43,7 +45,8 @@ A docstring template generator that adds docstring template to classes
 - Initial release
 
 # Road-map:
-- Able to insert missing elements into existing docstrings.
+- Able to insert more missing elements into existing docstrings.
+- Automatically detect the type of some variables
 
 
 # License:
@@ -104,6 +107,16 @@ def is_empty_line(line):
     return len(line.lstrip()) == 0
 
 
+def match_start_docstring(line):
+    line = line.lstrip()
+    return line.startswith('\"\"\"') or line.startswith('\'\'\'')
+
+
+def match_end_docstring(line):
+    line = line.lstrip()
+    return re.match(r'.*\"\"\"', line) or re.match(r'.*\'\'\'', line)
+
+
 def process_file(txt):
     """
     Return the new version of <txt> with docstrings added.
@@ -120,11 +133,16 @@ def process_file(txt):
 
     document_docstring_exists = False
 
+    augmentation_queue = []
+
     for i in range(len(lines)):
+        if i >= len(lines):
+            break
+
         line = lines[i]
 
         if not document_docstring_exists and not is_empty_line(line):
-            if not line.startswith('\"\"\"'):
+            if not match_start_docstring(line):
                 print('- added document docstring')
                 results.append('\"\"\"')
                 results.append(todo_label)
@@ -153,7 +171,21 @@ def process_file(txt):
                     break
 
                 if docstring_indentation is None:
-                    if sub_line.lstrip().startswith('\"\"\"'):
+                    if match_start_docstring(sub_line):
+                        for k in range(j + 1, len(lines)):
+                            closing_line = lines[k]
+                            if match_end_docstring(closing_line):
+                                # augmentation_queue.append((j + 1, k + 1, true))
+                                print(
+                                    '- augmented function docstring: ' + line.lstrip())
+                                results += augment_docstring(
+                                    lines[j:k+1], True
+                                )
+                                for _ in range(k - i):
+                                    lines.pop(i)
+
+                                break
+
                         break
 
                     docstring_indentation = sub_indentation
@@ -194,7 +226,21 @@ def process_file(txt):
                     break
 
                 if docstring_indentation is None:
-                    if ctor_line.lstrip().startswith('\"\"\"'):
+                    if match_start_docstring(ctor_line):
+                        for k in range(j + 1, len(lines)):
+                            closing_line = lines[k]
+                            if match_end_docstring(closing_line):
+                                # augmentation_queue.append((j + 1, k + 1, true))
+                                print(
+                                    '- augmented class docstring: ' + line.lstrip())
+                                results += augment_docstring(
+                                    lines[j:k+1], False
+                                )
+                                for _ in range(k - i):
+                                    lines.pop(i)
+
+                                break
+
                         break
 
                     docstring_indentation = ctor_indentation
@@ -231,6 +277,44 @@ def process_file(txt):
             continue
 
     return '\n'.join(results)
+
+
+def augment_docstring(existing_docstring, add_doctest):
+    result = []
+
+    indentation = get_indentation(existing_docstring[-1])
+
+    has_doctest = False
+
+    for i in range(len(existing_docstring)):
+        line = existing_docstring[i]
+
+        result.append(line)
+
+        stripped_line = line.lstrip()
+
+        if re.match(r'@\s*type.*:', stripped_line):
+            description_exists = False
+            if i+1 < len(existing_docstring):
+                next_line = existing_docstring[i+1]
+                if not is_empty_line(next_line) and \
+                    len(get_indentation(next_line)) > len(indentation):
+                    description_exists = True
+
+            if not description_exists and 'self' not in stripped_line:
+                result.append(indentation + '    ' + todo_label)
+
+        if stripped_line.startswith('>>>'):
+            has_doctest = True
+
+    if add_doctest and not has_doctest:
+        last_line = result.pop()
+        result.append(indentation)
+        result.append(indentation + '>>> ' + todo_label)
+        result.append(indentation)
+        result.append(last_line)
+
+    return result
 
 
 def get_class_docstring(attributes, p_attributes, indentation):
@@ -322,6 +406,9 @@ def get_function_docstring(declaration, has_return, indentation):
     else:
         docstring.append('@rtype: None')
 
+    docstring.append('')
+    docstring.append('>>> ' + todo_label)
+    docstring.append('')
     docstring.append('\"\"\"')
 
     for i in range(len(docstring)):
