@@ -1,6 +1,6 @@
 # CSC148 Docstring Generator
 A docstring template generator that adds docstring template to classes
-    and functions in your files without changing existing ones.
+    and functions in your files and insert missing elements into existing ones.
 
 # How to use:
 - Write all your code first before running this.
