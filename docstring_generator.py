@@ -1,7 +1,7 @@
 """
 # CSC148 Docstring Generator
 A docstring template generator that adds docstring template to classes
-    and functions in your files without changing existing ones.
+    and functions in your files and insert missing elements into existing ones.
 
 # How to use:
 - Write all your code first before running this.
@@ -22,16 +22,18 @@ A docstring template generator that adds docstring template to classes
     will be processed.
 - In each file, a docstring will be added for every function and class, as
     well as one for the entire document.
-    - function: A type contract will be added for every parameter.
+    - function: A type contract will be added for every parameter. Doctest
+        will be added.
     - class: The generator will scan the constructor (if exists) for any
         self.xxxx or self._xxxx properties.
         Warning: This feature will NOT consider inheritance.
 - Newly added docstring will have "[TODO]" as placeholder for the user to
     enter data, such as representation invariants.
-- If a docstring already exists, nothing will be added.
+- If a docstring already exists, descriptions and doctests will be inserted.
 - The original version will be renamed to "[old file name].bak" under the
     same folder. Check the new versions before running the generator again,
     or else the old backup will be overwritten.
+
 
 # Change log:
 - Able to insert descriptions and doctests into existing docstrings
