@@ -1,20 +1,23 @@
-
 # CSC148 Docstring Generator
-A docstring template generator
+A docstring template generator that adds docstring template to classes 
+    and functions in your files without changing existing ones.
 
 # How to use:
 - Write all your code first before running this.
 - Place this file inside the folder you want to process.
-- Run this file (for example, right click in PyCharm and select 'Run')
-- Go to your files, press "ctrl + F"(Windows) or "command + F"(Mac) to
+- Run this file (for example, right click in PyCharm and select 'Run').
+    Your files are now processed and backup is made.
+- Open your files, press "ctrl + F"(Windows) or "command + F"(Mac) to
     bring up the search bar. Write "[TODO]"(without the quotation marks)
     and press "Enter" once. Press "Esc", then hit "F3" to search for the next
     "[TODO]", write appropriate text then hit "F3" again and repeat until all
     "[TODO]"s are gone.
-- You may also add descriptions to each property / attribute by yourself.
+- Add attributes to class docstrings (if some were missing) and remove
+    unnecessary ones (such as inherited attributes in super constructor).
+    You may also add descriptions to each property / attribute by yourself.
 
 # What will happen:
-- All files under the same folder as well as files in the sub-folders
+- All python files under the same folder as well as files in the sub-folders
     will be processed.
 - In each file, a docstring will be added for every function and class, as
     well as one for the entire document.
@@ -28,10 +31,113 @@ A docstring template generator
 - The original version will be renamed to "[old file name].bak" under the
     same folder. Check the new versions before running the generator again,
     or else the old backup will be overwritten.
+    
+# Example:
+Before:
+```python
+def my_function(param1, param2):
+    return param1 + param2
 
+class my_class:
+    def __init__(self, param1):
+        self.attr1 = param1
+        self.attr2 = 0
+        self._pattr1 = 0
+        self._pattr2 = 0
+
+    def my_method(self, param1, param2):
+        print(param1, param2)
+
+    def my_method2(self):
+        """
+        existing docstring will not be modified.
+        """
+        return 0
+```
+After:
+```python
+"""
+[TODO]
+"""
+
+def my_function(param1, param2):
+    """[TODO]
+    
+    Preconditions: [TODO]
+    
+    @type param1: [TODO]
+        [TODO]
+    @type param2: [TODO]
+        [TODO]
+    @rtype: [TODO]
+    """
+    return param1 + param2
+
+class my_class:
+    """[TODO]
+    
+    === Attributes ===
+    @type attr1: [TODO]
+        [TODO]
+    @type attr2: [TODO]
+        [TODO]
+    
+    === Private Attributes ===
+    @type _pattr1: [TODO]
+        [TODO]
+    @type _pattr2: [TODO]
+        [TODO]
+    
+    === Representation Invariants ===
+    - [TODO]
+    """
+    def __init__(self, param1):
+        """[TODO]
+        
+        Preconditions: [TODO]
+        
+        @type self: [TODO]
+        @type param1: [TODO]
+            [TODO]
+        @rtype: None
+        """
+        self.attr1 = param1
+        self.attr2 = 0
+        self._pattr1 = 0
+        self._pattr2 = 0
+
+    def my_method(self, param1, param2):
+        """[TODO]
+        
+        Preconditions: [TODO]
+        
+        @type self: [TODO]
+        @type param1: [TODO]
+            [TODO]
+        @type param2: [TODO]
+            [TODO]
+        @rtype: None
+        """
+        print(param1, param2)
+
+    def my_method2(self):
+        """
+        existing docstring will not be modified.
+        """
+        return 0
+```
+
+# Change log:
+- Provide an example of before and after. Covering document docstring,
+    function, class (private + public), and unchanged existing docstrings.
+- Minor style changes
+- Default return type to None if no "return" statement is present in a function.
+    An exception is when the function raises NotImplementedError, or pass.
+- Adds description placeholder for every parameter and attribute except self.
+- Initial release
 
 # Road-map:
-- Default return type to None if no "return" statement is present in a function.
+- Able to insert missing elements into existing docstrings.
 
 
 # License:
